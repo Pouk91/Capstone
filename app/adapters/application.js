@@ -1,5 +1,5 @@
-import ENV from 'ga-wdi-boston.ember-auth/config/environment';
 import ActiveModelAdapter from 'active-model-adapter';
+import ENV from 'capstone-project.ember-auth/config/environment';
 
 import Ember from 'ember';
 

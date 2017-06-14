@@ -2,8 +2,8 @@
 
 module.exports = function (environment) {
   'use strict';
-  const ENV = {
-    modulePrefix: 'ga-wdi-boston.ember-auth',
+  var ENV = {
+    modulePrefix: 'capstone-project.ember-auth',
     environment: environment,
     rootURL: '/',
     locationType: 'auto',
@@ -49,7 +49,9 @@ module.exports = function (environment) {
   }
 
   if (environment === 'production') {
-    ENV.locationType = 'hash';
+  ENV.rootURL = '/Capstone';
+  ENV.locationType = 'hash';
+  ENV.apiHost = 'https://young-escarpment-97589.herokuapp.com/';
   }
 
   return ENV;
