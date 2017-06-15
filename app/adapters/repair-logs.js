@@ -6,8 +6,8 @@ export default ApplicationAdapter.extend({
     // console.log(api)
     let serialized = this.serialize(record, {includeId: true});
     // console.log(serialized)
-    let carId = serialized.car_id;
-    let url = `${api}/lists/${carId}/repairs`;
+    let repairsId = serialized.repair_id;
+    let url = `${api}/car-repairs/${repairsId}/car-repairs`;
     let data = {item: serialized};
 
     return this.ajax(url, 'POST', {data});

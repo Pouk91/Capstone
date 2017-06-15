@@ -10,7 +10,7 @@ Router.map(function () {
   this.route('sign-in');
   this.route('change-password');
   this.route('users');
-  this.route('repairs')
+  this.route('car-repair');
 });
 
 export default Router;

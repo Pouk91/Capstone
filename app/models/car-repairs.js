@@ -5,5 +5,6 @@ export default DS.Model.extend({
   repairdate:  DS.attr('datetime'),
   suggestedmaintenancedate: DS.attr('datetime'),
   repaircost: DS.attr('decimal'),
-  repaircomment:  DS.attr('string')
+  repaircomment:  DS.attr('string'),
+  repiars: DS.hasMany('repair')
 });
