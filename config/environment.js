@@ -51,7 +51,7 @@ module.exports = function (environment) {
   if (environment === 'production') {
   ENV.rootURL = '/Capstone';
   ENV.locationType = 'hash';
-  ENV.apiHost = 'https://young-escarpment-97589.herokuapp.com/';
+  ENV.apiHost = 'https://young-escarpment-97589.herokuapp.com';
   }
 
   return ENV;
