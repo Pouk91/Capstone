@@ -21,6 +21,21 @@ define('capstone-project.ember-auth/adapters/application', ['exports', 'active-m
     })
   });
 });
+define('capstone-project.ember-auth/adapters/cars', ['exports', 'capstone-project.ember-auth/adapters/application'], function (exports, _capstoneProjectEmberAuthAdaptersApplication) {
+  exports['default'] = _capstoneProjectEmberAuthAdaptersApplication['default'].extend({
+    createRecord: function createRecord(store, type, record) {
+      var api = this.get('host');
+      // console.log(api)
+      var serialized = this.serialize(record, { includeId: true });
+      // console.log(serialized)
+      var carId = serialized.car_id;
+      var url = api + '/lists/' + carId + '/repairs';
+      var data = { item: serialized };
+
+      return this.ajax(url, 'POST', { data: data });
+    }
+  });
+});
 define('capstone-project.ember-auth/app', ['exports', 'ember', 'capstone-project.ember-auth/resolver', 'ember-load-initializers', 'capstone-project.ember-auth/config/environment'], function (exports, _ember, _capstoneProjectEmberAuthResolver, _emberLoadInitializers, _capstoneProjectEmberAuthConfigEnvironment) {
 
   var App = undefined;
@@ -36,6 +51,39 @@ define('capstone-project.ember-auth/app', ['exports', 'ember', 'capstone-project
   (0, _emberLoadInitializers['default'])(App, _capstoneProjectEmberAuthConfigEnvironment['default'].modulePrefix);
 
   exports['default'] = App;
+});
+define('capstone-project.ember-auth/components/car-repair-forms', ['exports', 'ember'], function (exports, _ember) {
+  exports['default'] = _ember['default'].Component.extend({
+    tagName: 'div',
+    classNames: ['form-group'],
+
+    newRepair: {
+      repairname: null,
+      repairdate: null,
+      suggestedmaintenancedate: null,
+      repaircost: null,
+      repaircomment: null
+    },
+
+    actions: {
+
+      save: function save() {
+        var data = this.get('newTrip');
+        data.trip = this.get('trip');
+        this.sendAction('save', data);
+        this.set('newTrip.location', null);
+        this.set('newTrip.start_date', null);
+        this.set('newTrip.end_date', null);
+        this.set('newTrip.who', null);
+        this.set('newTrip.more_info', null);
+        this.set('newTrip', {});
+      },
+
+      cancel: function cancel() {
+        this.sendAction('cancel', this.get('trip'));
+      }
+    }
+  });
 });
 define('capstone-project.ember-auth/components/change-password-form', ['exports', 'ember'], function (exports, _ember) {
   exports['default'] = _ember['default'].Component.extend({
@@ -445,6 +493,22 @@ define("capstone-project.ember-auth/instance-initializers/ember-data", ["exports
     initialize: _emberDataPrivateInstanceInitializersInitializeStoreService["default"]
   };
 });
+define('capstone-project.ember-auth/models/car-repairs', ['exports', 'ember-data'], function (exports, _emberData) {
+  exports['default'] = _emberData['default'].Model.extend({
+    repairname: _emberData['default'].attr('string'),
+    repairdate: _emberData['default'].attr('datetime'),
+    suggestedmaintenancedate: _emberData['default'].attr('datetime'),
+    repaircost: _emberData['default'].attr('decimal'),
+    repaircomment: _emberData['default'].attr('string')
+  });
+});
+define('capstone-project.ember-auth/models/cars', ['exports', 'ember-data'], function (exports, _emberData) {
+  exports['default'] = _emberData['default'].Model.extend({
+    year: _emberData['default'].attr('integer'),
+    make: _emberData['default'].attr('string'),
+    model: _emberData['default'].attr('string')
+  });
+});
 define('capstone-project.ember-auth/models/user', ['exports', 'ember-data'], function (exports, _emberData) {
   exports['default'] = _emberData['default'].Model.extend({
     email: _emberData['default'].attr('string')
@@ -464,6 +528,7 @@ define('capstone-project.ember-auth/router', ['exports', 'ember', 'capstone-proj
     this.route('sign-in');
     this.route('change-password');
     this.route('users');
+    this.route('repairs');
   });
 
   exports['default'] = Router;
@@ -670,10 +735,16 @@ define('capstone-project.ember-auth/storages/auth', ['exports', 'ember-local-sto
   exports['default'] = _emberLocalStorageLocalObject['default'].extend({});
 });
 define("capstone-project.ember-auth/templates/application", ["exports"], function (exports) {
-  exports["default"] = Ember.HTMLBars.template({ "id": "kDNdBWJO", "block": "{\"statements\":[[\"append\",[\"helper\",[\"my-application\"],null,[[\"signOut\"],[\"signOut\"]]],false],[\"text\",\"\\n\"]],\"locals\":[],\"named\":[],\"yields\":[],\"blocks\":[],\"hasPartials\":false}", "meta": { "moduleName": "capstone-project.ember-auth/templates/application.hbs" } });
+  exports["default"] = Ember.HTMLBars.template({ "id": "WegkgVUM", "block": "{\"statements\":[[\"append\",[\"helper\",[\"my-application\"],null,[[\"reset\",\"signOut\"],[\"reset\",\"signOut\"]]],false],[\"text\",\"\\n\"]],\"locals\":[],\"named\":[],\"yields\":[],\"blocks\":[],\"hasPartials\":false}", "meta": { "moduleName": "capstone-project.ember-auth/templates/application.hbs" } });
+});
+define("capstone-project.ember-auth/templates/cars", ["exports"], function (exports) {
+  exports["default"] = Ember.HTMLBars.template({ "id": "FAB32YMR", "block": "{\"statements\":[[\"open-element\",\"h2\",[]],[\"flush-element\"],[\"text\",\"Your Cars\"],[\"close-element\"],[\"text\",\"\\n\\n\"],[\"open-element\",\"ul\",[]],[\"flush-element\"],[\"text\",\"\\n\"],[\"block\",[\"each\"],[[\"get\",[\"model\"]]],null,0],[\"close-element\"],[\"text\",\"\\n\"]],\"locals\":[],\"named\":[],\"yields\":[],\"blocks\":[{\"statements\":[[\"text\",\"  \"],[\"open-element\",\"li\",[]],[\"flush-element\"],[\"append\",[\"unknown\",[\"car\",\"year\"]],false],[\"close-element\"],[\"text\",\"\\n  \"],[\"open-element\",\"li\",[]],[\"flush-element\"],[\"append\",[\"unknown\",[\"car\",\"make\"]],false],[\"close-element\"],[\"text\",\"\\n  \"],[\"open-element\",\"li\",[]],[\"flush-element\"],[\"append\",[\"unknown\",[\"car\",\"model\"]],false],[\"close-element\"],[\"text\",\"\\n\"]],\"locals\":[\"repair\"]}],\"hasPartials\":false}", "meta": { "moduleName": "capstone-project.ember-auth/templates/cars.hbs" } });
 });
 define("capstone-project.ember-auth/templates/change-password", ["exports"], function (exports) {
-  exports["default"] = Ember.HTMLBars.template({ "id": "TJEZjtXS", "block": "{\"statements\":[[\"open-element\",\"h2\",[]],[\"flush-element\"],[\"text\",\"Change Password\"],[\"close-element\"],[\"text\",\"\\n\\n\"],[\"append\",[\"helper\",[\"change-password-form\"],null,[[\"submit\"],[\"changePassword\"]]],false],[\"text\",\"\\n\"]],\"locals\":[],\"named\":[],\"yields\":[],\"blocks\":[],\"hasPartials\":false}", "meta": { "moduleName": "capstone-project.ember-auth/templates/change-password.hbs" } });
+  exports["default"] = Ember.HTMLBars.template({ "id": "n4tkCgAh", "block": "{\"statements\":[[\"open-element\",\"h2\",[]],[\"flush-element\"],[\"text\",\"Change Password\"],[\"close-element\"],[\"text\",\"\\n\\n\"],[\"append\",[\"helper\",[\"change-password-form\"],null,[[\"reset\",\"submit\"],[\"reset\",\"changePassword\"]]],false],[\"text\",\"\\n\"]],\"locals\":[],\"named\":[],\"yields\":[],\"blocks\":[],\"hasPartials\":false}", "meta": { "moduleName": "capstone-project.ember-auth/templates/change-password.hbs" } });
+});
+define("capstone-project.ember-auth/templates/components/car-repair-forms", ["exports"], function (exports) {
+  exports["default"] = Ember.HTMLBars.template({ "id": "GvI9zP+9", "block": "{\"statements\":[[\"open-element\",\"div\",[]],[\"static-attr\",\"class\",\"col-md-6 col-md-offset-3\"],[\"flush-element\"],[\"text\",\"\\n\\n  \"],[\"open-element\",\"form\",[]],[\"flush-element\"],[\"text\",\"\\n    \"],[\"append\",[\"helper\",[\"input\"],null,[[\"placeholder\",\"class\",\"value\"],[\"Destination\",\"input-group form-control\",[\"get\",[\"car-repairs\",\"location\"]]]]],false],[\"text\",\"\\n\\n    \"],[\"append\",[\"helper\",[\"input\"],null,[[\"placeholder\",\"class\",\"value\",\"type\"],[\"When will you arrive?\",\"input-group form-control\",[\"get\",[\"car-repairs\",\"start_date\"]],\"date\"]]],false],[\"text\",\"\\n\\n    \"],[\"append\",[\"helper\",[\"input\"],null,[[\"placeholder\",\"class\",\"value\",\"type\"],[\"When will you leave?\",\"input-group form-control\",[\"get\",[\"car-repairs\",\"end_date\"]],\"date\"]]],false],[\"text\",\"\\n\\n    \"],[\"append\",[\"helper\",[\"input\"],null,[[\"placeholder\",\"class\",\"value\"],[\"Who is going?\",\"input-group form-control\",[\"get\",[\"car-repairs\",\"who\"]]]]],false],[\"text\",\"\\n\\n    \"],[\"append\",[\"helper\",[\"textarea\"],null,[[\"placeholder\",\"class\",\"value\"],[\"More info?\",\"input-group form-control\",[\"get\",[\"car-repairs\",\"more_info\"]]]]],false],[\"text\",\"\\n\\n    \"],[\"open-element\",\"button\",[]],[\"static-attr\",\"type\",\"submit\"],[\"static-attr\",\"class\",\"btn btn-primary\"],[\"modifier\",[\"action\"],[[\"get\",[null]],\"save\"]],[\"flush-element\"],[\"text\",\"Create Trip\"],[\"close-element\"],[\"text\",\"\\n    \"],[\"open-element\",\"button\",[]],[\"static-attr\",\"class\",\"btn btn-default\"],[\"modifier\",[\"action\"],[[\"get\",[null]],\"cancel\"]],[\"flush-element\"],[\"text\",\"Cancel\"],[\"close-element\"],[\"text\",\"\\n\\n  \"],[\"close-element\"],[\"text\",\"\\n\"],[\"close-element\"],[\"text\",\"\\n\"]],\"locals\":[],\"named\":[],\"yields\":[],\"blocks\":[],\"hasPartials\":false}", "meta": { "moduleName": "capstone-project.ember-auth/templates/components/car-repair-forms.hbs" } });
 });
 define("capstone-project.ember-auth/templates/components/change-password-form", ["exports"], function (exports) {
   exports["default"] = Ember.HTMLBars.template({ "id": "/SSXCPjm", "block": "{\"statements\":[[\"open-element\",\"div\",[]],[\"static-attr\",\"class\",\"form-group\"],[\"flush-element\"],[\"text\",\"\\n  \"],[\"open-element\",\"label\",[]],[\"static-attr\",\"for\",\"previous\"],[\"flush-element\"],[\"text\",\"Old Password\"],[\"close-element\"],[\"text\",\"\\n  \"],[\"append\",[\"helper\",[\"input\"],null,[[\"type\",\"class\",\"id\",\"placeholder\",\"value\"],[\"password\",\"form-control\",\"previous\",\"Old password\",[\"get\",[\"passwords\",\"previous\"]]]]],false],[\"text\",\"\\n\"],[\"close-element\"],[\"text\",\"\\n\\n\"],[\"open-element\",\"div\",[]],[\"static-attr\",\"class\",\"form-group\"],[\"flush-element\"],[\"text\",\"\\n  \"],[\"open-element\",\"label\",[]],[\"static-attr\",\"for\",\"next\"],[\"flush-element\"],[\"text\",\"New Password\"],[\"close-element\"],[\"text\",\"\\n  \"],[\"append\",[\"helper\",[\"input\"],null,[[\"type\",\"class\",\"id\",\"placeholder\",\"value\"],[\"password\",\"form-control\",\"next\",\"New password\",[\"get\",[\"passwords\",\"next\"]]]]],false],[\"text\",\"\\n\"],[\"close-element\"],[\"text\",\"\\n\\n\"],[\"open-element\",\"button\",[]],[\"static-attr\",\"type\",\"submit\"],[\"static-attr\",\"class\",\"btn btn-primary\"],[\"modifier\",[\"action\"],[[\"get\",[null]],\"submit\"]],[\"flush-element\"],[\"text\",\"\\n  Change Password\\n\"],[\"close-element\"],[\"text\",\"\\n\\n\"],[\"open-element\",\"button\",[]],[\"static-attr\",\"class\",\"btn btn-default\"],[\"modifier\",[\"action\"],[[\"get\",[null]],\"reset\"]],[\"flush-element\"],[\"text\",\"\\n  Cancel\\n\"],[\"close-element\"],[\"text\",\"\\n\"]],\"locals\":[],\"named\":[],\"yields\":[],\"blocks\":[],\"hasPartials\":false}", "meta": { "moduleName": "capstone-project.ember-auth/templates/components/change-password-form.hbs" } });
@@ -685,7 +756,7 @@ define("capstone-project.ember-auth/templates/components/hamburger-menu", ["expo
   exports["default"] = Ember.HTMLBars.template({ "id": "q6KEFK0I", "block": "{\"statements\":[[\"text\",\"  \"],[\"open-element\",\"span\",[]],[\"static-attr\",\"class\",\"sr-only\"],[\"flush-element\"],[\"text\",\"Toggle navigation\"],[\"close-element\"],[\"text\",\"\\n  \"],[\"open-element\",\"span\",[]],[\"static-attr\",\"class\",\"icon-bar\"],[\"flush-element\"],[\"close-element\"],[\"text\",\"\\n  \"],[\"open-element\",\"span\",[]],[\"static-attr\",\"class\",\"icon-bar\"],[\"flush-element\"],[\"close-element\"],[\"text\",\"\\n  \"],[\"open-element\",\"span\",[]],[\"static-attr\",\"class\",\"icon-bar\"],[\"flush-element\"],[\"close-element\"],[\"text\",\"\\n\"]],\"locals\":[],\"named\":[],\"yields\":[],\"blocks\":[],\"hasPartials\":false}", "meta": { "moduleName": "capstone-project.ember-auth/templates/components/hamburger-menu.hbs" } });
 });
 define("capstone-project.ember-auth/templates/components/my-application", ["exports"], function (exports) {
-  exports["default"] = Ember.HTMLBars.template({ "id": "OUIaEV9l", "block": "{\"statements\":[[\"open-element\",\"nav\",[]],[\"static-attr\",\"class\",\"navbar navbar-default\"],[\"flush-element\"],[\"text\",\"\\n  \"],[\"open-element\",\"div\",[]],[\"static-attr\",\"class\",\"container-fluid\"],[\"flush-element\"],[\"text\",\"\\n    \"],[\"append\",[\"unknown\",[\"navbar-header\"]],false],[\"text\",\"\\n\\n    \"],[\"open-element\",\"div\",[]],[\"static-attr\",\"class\",\"collapse navbar-collapse\"],[\"static-attr\",\"id\",\"navigation\"],[\"flush-element\"],[\"text\",\"\\n      \"],[\"open-element\",\"ul\",[]],[\"static-attr\",\"class\",\"nav navbar-nav\"],[\"flush-element\"],[\"text\",\"\\n\"],[\"block\",[\"if\"],[[\"get\",[\"isAuthenticated\"]]],null,7],[\"text\",\"      \"],[\"close-element\"],[\"text\",\"\\n      \"],[\"open-element\",\"ul\",[]],[\"static-attr\",\"class\",\"nav navbar-nav navbar-right\"],[\"flush-element\"],[\"text\",\"\\n\"],[\"block\",[\"if\"],[[\"get\",[\"isAuthenticated\"]]],null,5,3],[\"text\",\"      \"],[\"close-element\"],[\"text\",\"\\n    \"],[\"close-element\"],[\"text\",\"\\n  \"],[\"close-element\"],[\"text\",\"\\n\"],[\"close-element\"],[\"text\",\"\\n\\n\"],[\"open-element\",\"h1\",[]],[\"flush-element\"],[\"text\",\"Welcome to Ember!\"],[\"close-element\"],[\"text\",\"\\n\\n\"],[\"block\",[\"each\"],[[\"get\",[\"flashMessages\",\"queue\"]]],null,0],[\"text\",\"\\n\"],[\"open-element\",\"div\",[]],[\"static-attr\",\"class\",\"col-md-8 col-md-offset-2\"],[\"flush-element\"],[\"text\",\"\\n  \"],[\"append\",[\"unknown\",[\"outlet\"]],false],[\"text\",\"\\n\"],[\"close-element\"],[\"text\",\"\\n\"]],\"locals\":[],\"named\":[],\"yields\":[],\"blocks\":[{\"statements\":[[\"text\",\"  \"],[\"append\",[\"helper\",[\"flash-message\"],null,[[\"flash\"],[[\"get\",[\"flash\"]]]]],false],[\"text\",\"\\n\"]],\"locals\":[\"flash\"]},{\"statements\":[[\"text\",\"Sign In\"]],\"locals\":[]},{\"statements\":[[\"text\",\"Sign Up\"]],\"locals\":[]},{\"statements\":[[\"text\",\"        \"],[\"open-element\",\"li\",[]],[\"flush-element\"],[\"block\",[\"link-to\"],[\"sign-up\"],null,2],[\"close-element\"],[\"text\",\"\\n        \"],[\"open-element\",\"li\",[]],[\"flush-element\"],[\"block\",[\"link-to\"],[\"sign-in\"],null,1],[\"close-element\"],[\"text\",\"\\n\"]],\"locals\":[]},{\"statements\":[[\"text\",\"Change Password\"]],\"locals\":[]},{\"statements\":[[\"text\",\"        \"],[\"open-element\",\"li\",[]],[\"flush-element\"],[\"block\",[\"link-to\"],[\"change-password\"],null,4],[\"close-element\"],[\"text\",\"\\n        \"],[\"open-element\",\"li\",[]],[\"flush-element\"],[\"open-element\",\"a\",[]],[\"static-attr\",\"href\",\"#\"],[\"modifier\",[\"action\"],[[\"get\",[null]],\"signOut\"]],[\"flush-element\"],[\"text\",\"Sign Out\"],[\"close-element\"],[\"close-element\"],[\"text\",\"\\n\"]],\"locals\":[]},{\"statements\":[[\"text\",\"Users\"]],\"locals\":[]},{\"statements\":[[\"text\",\"        \"],[\"open-element\",\"li\",[]],[\"flush-element\"],[\"block\",[\"link-to\"],[\"users\"],null,6],[\"close-element\"],[\"text\",\"\\n\"]],\"locals\":[]}],\"hasPartials\":false}", "meta": { "moduleName": "capstone-project.ember-auth/templates/components/my-application.hbs" } });
+  exports["default"] = Ember.HTMLBars.template({ "id": "VbKrlEdq", "block": "{\"statements\":[[\"open-element\",\"nav\",[]],[\"static-attr\",\"class\",\"navbar navbar-default\"],[\"flush-element\"],[\"text\",\"\\n  \"],[\"open-element\",\"div\",[]],[\"static-attr\",\"class\",\"container-fluid\"],[\"flush-element\"],[\"text\",\"\\n    \"],[\"append\",[\"unknown\",[\"navbar-header\"]],false],[\"text\",\"\\n\\n    \"],[\"open-element\",\"div\",[]],[\"static-attr\",\"class\",\"collapse navbar-collapse\"],[\"static-attr\",\"id\",\"navigation\"],[\"flush-element\"],[\"text\",\"\\n      \"],[\"open-element\",\"ul\",[]],[\"static-attr\",\"class\",\"nav navbar-nav\"],[\"flush-element\"],[\"text\",\"\\n\"],[\"block\",[\"if\"],[[\"get\",[\"isAuthenticated\"]]],null,8],[\"text\",\"      \"],[\"close-element\"],[\"text\",\"\\n      \"],[\"open-element\",\"ul\",[]],[\"static-attr\",\"class\",\"nav navbar-nav navbar-right\"],[\"flush-element\"],[\"text\",\"\\n\"],[\"block\",[\"if\"],[[\"get\",[\"isAuthenticated\"]]],null,5,3],[\"text\",\"      \"],[\"close-element\"],[\"text\",\"\\n    \"],[\"close-element\"],[\"text\",\"\\n  \"],[\"close-element\"],[\"text\",\"\\n\"],[\"close-element\"],[\"text\",\"\\n\\n\"],[\"block\",[\"each\"],[[\"get\",[\"flashMessages\",\"queue\"]]],null,0],[\"text\",\"\\n\"],[\"open-element\",\"div\",[]],[\"static-attr\",\"class\",\"col-md-8 col-md-offset-2\"],[\"flush-element\"],[\"text\",\"\\n  \"],[\"append\",[\"unknown\",[\"outlet\"]],false],[\"text\",\"\\n\"],[\"close-element\"],[\"text\",\"\\n\"]],\"locals\":[],\"named\":[],\"yields\":[],\"blocks\":[{\"statements\":[[\"text\",\"  \"],[\"append\",[\"helper\",[\"flash-message\"],null,[[\"flash\"],[[\"get\",[\"flash\"]]]]],false],[\"text\",\"\\n\"]],\"locals\":[\"flash\"]},{\"statements\":[[\"text\",\"Sign In\"]],\"locals\":[]},{\"statements\":[[\"text\",\"Sign Up\"]],\"locals\":[]},{\"statements\":[[\"text\",\"        \"],[\"open-element\",\"li\",[]],[\"flush-element\"],[\"block\",[\"link-to\"],[\"sign-up\"],null,2],[\"close-element\"],[\"text\",\"\\n        \"],[\"open-element\",\"li\",[]],[\"flush-element\"],[\"block\",[\"link-to\"],[\"sign-in\"],null,1],[\"close-element\"],[\"text\",\"\\n\"]],\"locals\":[]},{\"statements\":[[\"text\",\"Change Password\"]],\"locals\":[]},{\"statements\":[[\"text\",\"        \"],[\"open-element\",\"li\",[]],[\"flush-element\"],[\"block\",[\"link-to\"],[\"change-password\"],null,4],[\"close-element\"],[\"text\",\"\\n        \"],[\"open-element\",\"li\",[]],[\"flush-element\"],[\"open-element\",\"a\",[]],[\"static-attr\",\"href\",\"#\"],[\"modifier\",[\"action\"],[[\"get\",[null]],\"signOut\"]],[\"flush-element\"],[\"text\",\"Sign Out\"],[\"close-element\"],[\"close-element\"],[\"text\",\"\\n\"]],\"locals\":[]},{\"statements\":[[\"text\",\"Log Repairs\"]],\"locals\":[]},{\"statements\":[[\"text\",\"My Repairs\"]],\"locals\":[]},{\"statements\":[[\"text\",\"        \"],[\"open-element\",\"li\",[]],[\"flush-element\"],[\"block\",[\"link-to\"],[\"users\"],null,7],[\"close-element\"],[\"text\",\"\\n        \"],[\"open-element\",\"li\",[]],[\"flush-element\"],[\"block\",[\"link-to\"],[\"repairs\"],null,6],[\"close-element\"],[\"text\",\"\\n\"]],\"locals\":[]}],\"hasPartials\":false}", "meta": { "moduleName": "capstone-project.ember-auth/templates/components/my-application.hbs" } });
 });
 define("capstone-project.ember-auth/templates/components/navbar-header", ["exports"], function (exports) {
   exports["default"] = Ember.HTMLBars.template({ "id": "sereUpdJ", "block": "{\"statements\":[[\"append\",[\"unknown\",[\"hamburger-menu\"]],false],[\"text\",\"\\n\"],[\"block\",[\"link-to\"],[\"application\"],[[\"class\"],[\"navbar-brand\"]],0],[\"text\",\"\\n\"]],\"locals\":[],\"named\":[],\"yields\":[],\"blocks\":[{\"statements\":[[\"text\",\"Home\"]],\"locals\":[]}],\"hasPartials\":false}", "meta": { "moduleName": "capstone-project.ember-auth/templates/components/navbar-header.hbs" } });
@@ -702,11 +773,14 @@ define("capstone-project.ember-auth/templates/components/sign-in-form", ["export
 define("capstone-project.ember-auth/templates/components/sign-up-form", ["exports"], function (exports) {
   exports["default"] = Ember.HTMLBars.template({ "id": "tJw6nMEM", "block": "{\"statements\":[[\"append\",[\"helper\",[\"email-input\"],null,[[\"email\"],[[\"get\",[\"credentials\",\"email\"]]]]],false],[\"text\",\"\\n\"],[\"append\",[\"helper\",[\"password-input\"],null,[[\"password\"],[[\"get\",[\"credentials\",\"password\"]]]]],false],[\"text\",\"\\n\"],[\"append\",[\"helper\",[\"password-confirmation-input\"],null,[[\"password\"],[[\"get\",[\"credentials\",\"passwordConfirmation\"]]]]],false],[\"text\",\"\\n\\n\"],[\"open-element\",\"button\",[]],[\"static-attr\",\"type\",\"submit\"],[\"static-attr\",\"class\",\"btn btn-primary\"],[\"modifier\",[\"action\"],[[\"get\",[null]],\"submit\"]],[\"flush-element\"],[\"text\",\"\\n  Sign Up\\n\"],[\"close-element\"],[\"text\",\"\\n\\n\"],[\"open-element\",\"button\",[]],[\"static-attr\",\"class\",\"btn btn-default\"],[\"modifier\",[\"action\"],[[\"get\",[null]],\"reset\"]],[\"flush-element\"],[\"text\",\"\\n  Cancel\\n\"],[\"close-element\"],[\"text\",\"\\n\"]],\"locals\":[],\"named\":[],\"yields\":[],\"blocks\":[],\"hasPartials\":false}", "meta": { "moduleName": "capstone-project.ember-auth/templates/components/sign-up-form.hbs" } });
 });
+define("capstone-project.ember-auth/templates/repairs", ["exports"], function (exports) {
+  exports["default"] = Ember.HTMLBars.template({ "id": "oQ1bTczm", "block": "{\"statements\":[[\"append\",[\"helper\",[\"car-reapir-forms\"],null,[[\"submit\",\"reset\",\"credentials\"],[\"signIn\",\"reset\",[\"get\",[\"model\"]]]]],false],[\"text\",\"\\n\"]],\"locals\":[],\"named\":[],\"yields\":[],\"blocks\":[],\"hasPartials\":false}", "meta": { "moduleName": "capstone-project.ember-auth/templates/repairs.hbs" } });
+});
 define("capstone-project.ember-auth/templates/sign-in", ["exports"], function (exports) {
-  exports["default"] = Ember.HTMLBars.template({ "id": "jwFG8lIf", "block": "{\"statements\":[[\"open-element\",\"h2\",[]],[\"flush-element\"],[\"text\",\"Sign In\"],[\"close-element\"],[\"text\",\"\\n\\n\"],[\"append\",[\"helper\",[\"sign-in-form\"],null,[[\"submit\",\"reset\",\"credentials\"],[\"signIn\",\"reset\",[\"get\",[\"model\"]]]]],false],[\"text\",\"\\n\"]],\"locals\":[],\"named\":[],\"yields\":[],\"blocks\":[],\"hasPartials\":false}", "meta": { "moduleName": "capstone-project.ember-auth/templates/sign-in.hbs" } });
+  exports["default"] = Ember.HTMLBars.template({ "id": "hSh4z6iz", "block": "{\"statements\":[[\"append\",[\"helper\",[\"sign-in-form\"],null,[[\"submit\",\"reset\",\"credentials\"],[\"signIn\",\"reset\",[\"get\",[\"model\"]]]]],false],[\"text\",\"\\n\"]],\"locals\":[],\"named\":[],\"yields\":[],\"blocks\":[],\"hasPartials\":false}", "meta": { "moduleName": "capstone-project.ember-auth/templates/sign-in.hbs" } });
 });
 define("capstone-project.ember-auth/templates/sign-up", ["exports"], function (exports) {
-  exports["default"] = Ember.HTMLBars.template({ "id": "AwPEbywV", "block": "{\"statements\":[[\"open-element\",\"h2\",[]],[\"flush-element\"],[\"text\",\"Sign Up\"],[\"close-element\"],[\"text\",\"\\n\\n\"],[\"append\",[\"helper\",[\"sign-up-form\"],null,[[\"submit\"],[\"signUp\"]]],false],[\"text\",\"\\n\"]],\"locals\":[],\"named\":[],\"yields\":[],\"blocks\":[],\"hasPartials\":false}", "meta": { "moduleName": "capstone-project.ember-auth/templates/sign-up.hbs" } });
+  exports["default"] = Ember.HTMLBars.template({ "id": "R9SRdsLp", "block": "{\"statements\":[[\"append\",[\"helper\",[\"sign-up-form\"],null,[[\"reset\",\"submit\"],[\"reset\",\"signUp\"]]],false],[\"text\",\"\\n\"]],\"locals\":[],\"named\":[],\"yields\":[],\"blocks\":[],\"hasPartials\":false}", "meta": { "moduleName": "capstone-project.ember-auth/templates/sign-up.hbs" } });
 });
 define("capstone-project.ember-auth/templates/users", ["exports"], function (exports) {
   exports["default"] = Ember.HTMLBars.template({ "id": "A0afvCEF", "block": "{\"statements\":[[\"open-element\",\"h2\",[]],[\"flush-element\"],[\"text\",\"Users\"],[\"close-element\"],[\"text\",\"\\n\\n\"],[\"open-element\",\"ul\",[]],[\"flush-element\"],[\"text\",\"\\n\"],[\"block\",[\"each\"],[[\"get\",[\"model\"]]],null,0],[\"close-element\"],[\"text\",\"\\n\"]],\"locals\":[],\"named\":[],\"yields\":[],\"blocks\":[{\"statements\":[[\"text\",\"  \"],[\"open-element\",\"li\",[]],[\"flush-element\"],[\"append\",[\"unknown\",[\"user\",\"email\"]],false],[\"close-element\"],[\"text\",\"\\n\"]],\"locals\":[\"user\"]}],\"hasPartials\":false}", "meta": { "moduleName": "capstone-project.ember-auth/templates/users.hbs" } });
@@ -733,6 +807,6 @@ catch(err) {
 });
 
 if (!runningTests) {
-  require("capstone-project.ember-auth/app")["default"].create({"name":"capstone-project.ember-auth","version":"0.0.0+f9348666"});
+  require("capstone-project.ember-auth/app")["default"].create({"name":"capstone-project.ember-auth","version":"0.0.0+33fdbede"});
 }
 //# sourceMappingURL=capstone-project.ember-auth.map
